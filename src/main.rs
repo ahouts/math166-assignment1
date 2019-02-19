@@ -32,13 +32,18 @@ fn main() {
             let res = match f.newtons(res, 1e-50) {
                 Ok(r) => r,
                 Err(e) => {
-                    println!("    error while calculating newtons: {}", e);
+                    println!("    newtons method took too many iterations, use bisection further");
+                    let (res, n_iter) = f.bisection(x0, x1, 1e-15);
+                    println!("    number of bisection iterations = {}", n_iter);
+                    println!("    res = {:.15}", res);
+                    println!("    f(res) = {:.15}", f.eval(res));
                     continue;
                 }
             };
             let (res, n_iter) = res;
             println!("    number of newton iterations = {}", n_iter);
             println!("    res = {:.50}", res);
+            println!("    f(res) = {:.50}", f.eval(res));
             println!();
         }
     }
@@ -79,6 +84,7 @@ fn main() {
             let (res, n_iter) = res;
             println!("    number of newton iterations = {}", n_iter);
             println!("    res = {:.50}", res);
+            println!("    f(res) = {:.50}", f.eval(res));
             println!();
         }
     }
@@ -95,14 +101,22 @@ fn main() {
             Box::new(move |x: f64| (1.0 / f64::cos(x)).powi(2) + b / x.powi(2)),
         );
         println!("b = {:.10}", b);
-        let sign_changes = f.find_sign_changes(0.0, 15.0, 0.1);
+        // either sin(x) or b/x*cos(x) will dominate the other, the magnitude of b determines which one it will be
+        let dominant_term = f64::max(b, 1.0);
+        let sign_changes = f.find_sign_changes(0.0, 20.0 * dominant_term, 0.00001 * dominant_term);
         if sign_changes.is_empty() {
             println!("  no roots found");
             continue;
         }
-        for (x0, x1) in sign_changes.into_iter().take(3) {
-            println!("  finding root in range ({:.1}, {:.1})", x0, x1);
-            let (res, n_iter) = f.bisection(x0, x1, 1e-10);
+        let sign_change_iterator = sign_changes
+            .into_iter()
+            .enumerate()
+            // ignore the inf to negative inf changes
+            .filter_map(|(i, v)| if i % 2 == 0 {Some(v)} else {None})
+            .take(3);
+        for (x0, x1) in sign_change_iterator {
+            println!("  finding root in range ({:.20}, {:.20})", x0, x1);
+            let (res, n_iter) = f.bisection(x0, x1, 1e-10 * dominant_term);
             println!("    number of bisection iterations = {}", n_iter);
             println!("    res = {:.10}", res);
             let res = match f.newtons(res, 1e-50) {
@@ -115,6 +129,7 @@ fn main() {
             let (res, n_iter) = res;
             println!("    number of newton iterations = {}", n_iter);
             println!("    res = {:.50}", res);
+            println!("    f(res) = {:.50}", f.eval(res));
             println!();
         }
     }
@@ -164,9 +179,12 @@ fn main() {
     let p: Poly = vec![48.5625, -156.6, 212.6625, -151.85, 59.5, -12.1, 1.0]
         .into_iter()
         .collect();
-    println!("check if the sign of f(x) changes on (2, 2.2), 1e-10 increments");
-    assert!(p.find_sign_changes(2.0, 2.2, 1e-10).is_empty());
-    println!("the sign of f(x) does not change on (2, 2.2), 1e-10 increments");
+    println!("check if the sign of f(x) changes on (2, 2.2), 1e-9 increments");
+    assert!(p.find_sign_changes(2.0, 2.2, 1e-9).is_empty());
+    println!("the sign of f(x) does not change on (2, 2.2), 1e-9 increments");
+    println!("check if newtons method converges");
+    assert!(p.newtons(2.1, 1e-30).is_err());
+    println!("newtons method does not converge");
 
     println!();
     println!("##################################################");
@@ -194,6 +212,7 @@ fn main() {
             let (res, n_iter) = res;
             println!("    number of newton iterations = {}", n_iter);
             println!("    res = {:.50}", res);
+            println!("    f(res) = {:.50}", p.eval(res));
             println!();
         }
     }
