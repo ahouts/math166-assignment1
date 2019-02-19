@@ -103,7 +103,7 @@ fn main() {
         println!("b = {:.10}", b);
         // either sin(x) or b/x*cos(x) will dominate the other, the magnitude of b determines which one it will be
         let dominant_term = f64::max(b, 1.0);
-        let sign_changes = f.find_sign_changes(0.0, 20.0 * dominant_term, 0.00001 * dominant_term);
+        let sign_changes = f.find_sign_changes(0.0, 20.0 * dominant_term, 0.1 * dominant_term);
         if sign_changes.is_empty() {
             println!("  no roots found");
             continue;
