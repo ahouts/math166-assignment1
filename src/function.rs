@@ -21,7 +21,7 @@ pub trait Function: Sync {
             }
             n_iter += 1;
             if f64::abs(x1 - x0) < accuracy {
-                return (x1, n_iter);
+                return ((x1 + x0) / 2.0, n_iter);
             }
         }
     }
