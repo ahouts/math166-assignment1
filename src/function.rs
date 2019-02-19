@@ -35,7 +35,10 @@ pub trait Function: Sync {
                 let y0 = self.eval(x0);
                 let x1 = x0 + step_size;
                 let y1 = self.eval(x1);
-                if (y0 <= 0.0 && y1 >= 0.0) || y0 >= 0.0 && y1 <= 0.0 {
+                if ((y0 <= 0.0 && y1 >= 0.0) || (y0 >= 0.0 && y1 <= 0.0))
+                    // make sure we haven't found pos&neg infinity
+                    && self.eval((x0 + x1) / 2.0).abs() < 1.0
+                {
                     Some((x0, x1))
                 } else {
                     None

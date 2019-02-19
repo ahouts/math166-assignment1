@@ -32,7 +32,7 @@ fn main() {
             let res = match f.newtons(res, 1e-50) {
                 Ok(r) => r,
                 Err(e) => {
-                    println!("    newtons method took too many iterations, use bisection further");
+                    println!("    newtons method took too many iterations, use bisection for final evaluation");
                     let (res, n_iter) = f.bisection(x0, x1, 1e-15);
                     println!("    number of bisection iterations = {}", n_iter);
                     println!("    res = {:.15}", res);
@@ -108,13 +108,7 @@ fn main() {
             println!("  no roots found");
             continue;
         }
-        let sign_change_iterator = sign_changes
-            .into_iter()
-            .enumerate()
-            // ignore the inf to negative inf changes
-            .filter_map(|(i, v)| if i % 2 == 0 {Some(v)} else {None})
-            .take(3);
-        for (x0, x1) in sign_change_iterator {
+        for (x0, x1) in sign_changes.into_iter().take(3) {
             println!("  finding root in range ({:.20}, {:.20})", x0, x1);
             let (res, n_iter) = f.bisection(x0, x1, 1e-10 * dominant_term);
             println!("    number of bisection iterations = {}", n_iter);
