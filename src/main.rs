@@ -149,7 +149,7 @@ fn main() {
         println!("  finding root in range ({:.8}, {:.8})", x0, x1);
         let (res, n_iter) = p.bisection(x0, x1, 1e-13);
         println!("    number of bisection iterations = {}", n_iter);
-        println!("    res = {:.10}", res);
+        println!("    res = {:.13}", res);
         let res = match p.newtons(res, 1e-50) {
             Ok(r) => r,
             Err(e) => {
