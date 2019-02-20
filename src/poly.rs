@@ -6,23 +6,17 @@ use std::iter::FromIterator;
 pub struct Poly {
     // coefficients of the polynomial, starting with pow=0 at index 0, pow=1 at index 1, etc...
     coef: Vec<f64>,
+    // coefficients of the derivative of the polynomial
+    dx_coef: Vec<f64>,
 }
 
 impl Poly {
-    pub fn new() -> Self {
-        Poly { coef: vec![] }
-    }
-
-    pub fn dx(&self) -> Self {
-        Poly {
-            coef: self
-                .coef
-                .iter()
-                .enumerate()
-                .skip(1)
-                .map(|(pow, coef)| *coef * pow as f64)
-                .collect(),
-        }
+    pub fn dx(coef: &[f64]) -> Vec<f64> {
+        coef.iter()
+            .enumerate()
+            .skip(1)
+            .map(|(pow, coef)| *coef * pow as f64)
+            .collect()
     }
 }
 
@@ -39,15 +33,19 @@ impl Function for Poly {
 
 impl Continuous for Poly {
     fn derivative(&self, x: f64) -> f64 {
-        let dx = self.dx();
-        dx.eval(x)
+        let mut i = self.dx_coef.iter().rev();
+        let mut res = *i.next().unwrap();
+        for coef in i {
+            res = res * x + *coef;
+        }
+        res
     }
 }
 
 impl FromIterator<f64> for Poly {
     fn from_iter<I: IntoIterator<Item = f64>>(iter: I) -> Self {
-        Poly {
-            coef: iter.into_iter().collect(),
-        }
+        let coef: Vec<f64> = iter.into_iter().collect();
+        let dx_coef = Self::dx(coef.as_slice());
+        Poly { coef, dx_coef }
     }
 }
